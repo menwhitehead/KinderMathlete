@@ -2,6 +2,7 @@ from __future__ import print_function
 import numpy as np
 np.random.seed(1337)  # for reproducibility
 
+import random
 from keras.preprocessing import sequence
 from keras.utils import np_utils
 from keras.models import Sequential
@@ -19,7 +20,12 @@ print('Loading data...')
 X_train = []
 y_train = []
 
-f = open("cleaned.txt", 'r')
+X_test = []
+y_test = []
+
+train_prob = 0.9
+
+f = open("dataset.txt", 'r')
 all_txt = f.read()
 f.close()
 tokens = all_txt.split()
@@ -31,7 +37,7 @@ uniques = words.keys()
 uniques.sort()
 
 
-f = open("cleaned.txt", 'r')
+f = open("dataset.txt", 'r')
 for line in f:
     tokens = line.split()
     answer = tokens[-1]
@@ -42,22 +48,28 @@ for line in f:
     ans = uniques.index(answer)
     #print(seq)
     #print(ans)
-
-    X_train.append(seq)
-    y_train.append(ans)
+    if random.random() < train_prob:
+        X_train.append(seq)
+        y_train.append(ans)
+    else:
+        X_test.append(seq)
+        y_test.append(ans)
     
 
 print(len(X_train), 'train sequences')
+print(len(X_test), 'test sequences')
+y_train.append(900)
+y_test.append(900)
 y_train = to_categorical(y_train)
-
+y_test = to_categorical(y_test)
+y_train = y_train[:-1]
+y_test = y_test[:-1]
 #print(X_train)
 #print(y_train.shape)
-print(y_train)
 
 #print('Pad sequences (samples x time)')
 X_train = sequence.pad_sequences(X_train, maxlen=maxlen)
-print('X_train shape:', X_train.shape)
-
+X_test = sequence.pad_sequences(X_test, maxlen=maxlen)
 
 print('Build model...')
 model = Sequential()
@@ -73,7 +85,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 print('Train...')
-model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=150)
-score, acc = model.evaluate(X_train, y_train, batch_size=batch_size)
+model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=150, validation_data=(X_test, y_test))
+score, acc = model.evaluate(X_test, y_test, batch_size=batch_size)
 print('Score:', score)
 print('Accuracy:', acc)
