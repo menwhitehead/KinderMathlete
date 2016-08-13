@@ -9,8 +9,6 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Embedding
 from keras.layers import LSTM, SimpleRNN, GRU
 
-
-
 max_features = 13000
 maxlen = 50  # cut texts after this number of words (among top max_features most common words)
 batch_size = 32
@@ -24,7 +22,7 @@ y_test = []
 
 train_prob = 0.9
 
-f = open("illinois.txt", 'r')
+f = open("operand_prediction.txt", 'r')
 all_txt = f.read()
 f.close()
 tokens = all_txt.split()
@@ -36,7 +34,7 @@ uniques = words.keys()
 uniques.sort()
 
 
-f = open("illinois.txt", 'r')
+f = open("operand_prediction.txt", 'r')
 for line in f:
     tokens = line.split()
     answer = tokens[-1]
@@ -44,6 +42,7 @@ for line in f:
     for token in tokens[:-1]:
         txt = uniques.index(token)
         seq.append(txt)
+        
     ans = uniques.index(answer)
     #print(seq)
     #print(ans)
@@ -54,7 +53,7 @@ for line in f:
         X_test.append(seq)
         y_test.append(ans)
     
-
+print y_train
 print(len(X_train), 'train sequences')
 print(len(X_test), 'test sequences')
 y_train.append(900)
@@ -66,7 +65,6 @@ y_test = y_test[:-1]
 #print(X_train)
 #print(y_train.shape)
 
-#print('Pad sequences (samples x time)')
 X_train = sequence.pad_sequences(X_train, maxlen=maxlen)
 X_test = sequence.pad_sequences(X_test, maxlen=maxlen)
 
