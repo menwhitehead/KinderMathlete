@@ -17,7 +17,18 @@ for prob in data:
         operands = eq.split("*")
     if '/' in eq:
         operands = eq.split("/")
-    operands = map(float, operands)
+    final_operands = []
+    for op in operands:
+        try:
+            new = float(op)
+            new2 = int(new)
+            if new == new2:
+                new = new2
+        except ValueError:
+            print "NOPE"
+            new = float(op)
+        final_operands.append(new)
+    #operands = map(float, operands)
 
     txt = prob['sQuestion']
     tokens = txt.split()
@@ -30,5 +41,5 @@ for prob in data:
         token = token.strip("$")
         new_txt += token + " "
 
-    print new_txt.strip(), operands[0], operands[1]
+    print new_txt.strip(), final_operands[0], final_operands[1]
     
