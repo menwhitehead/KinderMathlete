@@ -9,13 +9,18 @@ for prob in data:
     # print eq
     eq = eq.strip('()')
     # print eq
+    operator = ''
     if '+' in eq:
+        operator = '+'
         operands = eq.split("+")
-    if '-' in eq:
+    elif '-' in eq:
+        operator = '-'
         operands = eq.split("-")
-    if '*' in eq:
+    elif '*' in eq:
+        operator = '*'
         operands = eq.split("*")
-    if '/' in eq:
+    elif '/' in eq:
+        operator = '/'
         operands = eq.split("/")
     final_operands = []
     for op in operands:
@@ -43,4 +48,4 @@ for prob in data:
         new_txt += token + " "
 
 
-    print new_txt.strip(), final_operands[0], final_operands[1]
+    print new_txt.strip(), "%s%s%s" % (str(final_operands[0]), str(operator), str(final_operands[1]))

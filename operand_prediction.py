@@ -1,6 +1,6 @@
 import random
 import numpy as np
-np.random.seed(42)  # for reproducibility
+# np.random.seed(42)  # for reproducibility
 
 from keras.preprocessing import sequence
 # from keras.utils import np_utils
@@ -17,8 +17,8 @@ print('Loading data...')
 X_train = []
 y_train = []
 
-X_test = []
-y_test = []
+X_test_orig = []
+y_test_orig = []
 
 train_prob = 0.9
 
@@ -33,16 +33,20 @@ for token in tokens:
 uniques = words.keys()
 uniques.sort()
 
+vocab_size = len(uniques)
+
+print "VOCAB SIZE:", vocab_size
+
 
 f = open("operand_prediction.txt", 'r')
 for line in f:
     tokens = line.split()
-    answer = tokens[-1]
+    answer = tokens[-2]
     seq = []
-    for token in tokens[:-1]:
+    for token in tokens[:-2]:
         txt = uniques.index(token)
         seq.append(txt)
-        
+
     ans = uniques.index(answer)
     #print(seq)
     #print(ans)
@@ -50,28 +54,28 @@ for line in f:
         X_train.append(seq)
         y_train.append(ans)
     else:
-        X_test.append(seq)
-        y_test.append(ans)
-    
-print y_train
-print(len(X_train), 'train sequences')
-print(len(X_test), 'test sequences')
-y_train.append(900)
-y_test.append(900)
+        X_test_orig.append(seq)
+        y_test_orig.append(ans)
+
+print "train sequences:", len(X_train)
+print "test sequences:", len(X_test_orig)
+y_train.append(vocab_size+1)
+y_test_orig.append(vocab_size+1)
 y_train = to_categorical(y_train)
-y_test = to_categorical(y_test)
+y_test = to_categorical(y_test_orig)
 y_train = y_train[:-1]
 y_test = y_test[:-1]
 #print(X_train)
 #print(y_train.shape)
 
 X_train = sequence.pad_sequences(X_train, maxlen=maxlen)
-X_test = sequence.pad_sequences(X_test, maxlen=maxlen)
+X_test = sequence.pad_sequences(X_test_orig, maxlen=maxlen)
 
 print('Build model...')
 model = Sequential()
 model.add(Embedding(max_features, 128, input_length=maxlen, dropout=0.2))
-model.add(LSTM(128, dropout_W=0.2, dropout_U=0.2))  
+# model.add(LSTM(128, dropout_W=0.2, dropout_U=0.2, return_sequences=True))
+model.add(LSTM(256, dropout_W=0.2, dropout_U=0.2))
 model.add(Dense(len(y_train[0])))
 model.add(Activation('softmax'))
 
@@ -80,7 +84,17 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 print('Train...')
-model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=150, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=50, validation_data=(X_test, y_test))
 score, acc = model.evaluate(X_test, y_test, batch_size=batch_size)
 print('Score:', score)
 print('Accuracy:', acc)
+
+predictions = model.predict(X_test)
+for i in range(len(predictions)):
+    p = predictions[i]
+    ind = list(p).index(max(p))
+    token = uniques[ind]
+    answer = uniques[y_test_orig[i]]
+    for word in range(len(X_test_orig[i])):
+        print uniques[X_test_orig[i][word]],
+    print token, answer

@@ -32,7 +32,9 @@ for token in tokens:
 
 uniques = words.keys()
 uniques.sort()
+vocab_size = len(uniques)
 
+print "VOCAB SIZE:", vocab_size
 
 f = open("operation_prediction.txt", 'r')
 for line in f:
@@ -43,20 +45,19 @@ for line in f:
         txt = uniques.index(token)
         seq.append(txt)
     ans = uniques.index(answer)
-    #print(seq)
-    #print(ans)
+
     if random.random() < train_prob:
         X_train.append(seq)
         y_train.append(ans)
     else:
         X_test.append(seq)
         y_test.append(ans)
-    
+
 
 print(len(X_train), 'train sequences')
 print(len(X_test), 'test sequences')
-y_train.append(900)
-y_test.append(900)
+y_train.append(vocab_size+1)
+y_test.append(vocab_size+1)
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
 y_train = y_train[:-1]
@@ -68,10 +69,15 @@ y_test = y_test[:-1]
 X_train = sequence.pad_sequences(X_train, maxlen=maxlen)
 X_test = sequence.pad_sequences(X_test, maxlen=maxlen)
 
+
+print X_train.shape, X_test.shape, y_train.shape, y_test.shape
+print X_train[0], y_train[0]
+
 print('Build model...')
 model = Sequential()
 model.add(Embedding(max_features, 128, input_length=maxlen, dropout=0.2))
-model.add(LSTM(128, dropout_W=0.2, dropout_U=0.2))  
+# model.add(LSTM(256, dropout_W=0.2, dropout_U=0.2))
+model.add(LSTM(256, dropout_W=0.5, dropout_U=0.5))
 model.add(Dense(len(y_train[0])))
 model.add(Activation('softmax'))
 
@@ -80,7 +86,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 print('Train...')
-model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=150, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=100, validation_data=(X_test, y_test))
 score, acc = model.evaluate(X_test, y_test, batch_size=batch_size)
 print('Score:', score)
 print('Accuracy:', acc)
