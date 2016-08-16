@@ -75,7 +75,7 @@ for line in f:
     #print(ans)
     if len(seq) > max_detected_length:
         max_detected_length = len(seq)
-        
+
     if random.random() < train_prob:
         X_train.append(seq)
         y_train.append(ans_seq)
@@ -133,7 +133,7 @@ print('Train...')
 # predictions = model.predict(X_test)
 # print predictions
 
-model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=50, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, batch_size=batch_size, nb_epoch=250, validation_data=(X_test, y_test))
 score, acc = model.evaluate(X_test, y_test, batch_size=batch_size)
 print('Score:', score)
 print('Accuracy:', acc)
