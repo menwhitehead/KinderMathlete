@@ -49,10 +49,10 @@ uniques.sort()
 vocab_size = len(uniques)
 
 print "VOCAB SIZE:", vocab_size
-PAD_LENGTH = 10
+PAD_LENGTH = 10 #maxlen
 max_features = vocab_size
 
-
+max_detected_length = 0
 f = open("seq2seq.txt", 'r')
 for line in f:
     tokens = line.split()
@@ -65,14 +65,17 @@ for line in f:
     ans_seq = []
     for char in answer:
         #ans_seq.append(to_one_hot(char))
-        #ans_seq.append(to_one_hot(char))
-        ans_seq.append(calc_buttons.index(char))
+        ans_seq.append(to_one_hot(char))
+        # ans_seq.append(calc_buttons.index(char))
     # while len(ans_seq) < PAD_LENGTH:
     #     ans_seq.append(to_one_hot(' '))
     # ans_seq = np.array(ans_seq)
     #ans = uniques.index(answer)
     #print(seq)
     #print(ans)
+    if len(seq) > max_detected_length:
+        max_detected_length = len(seq)
+        
     if random.random() < train_prob:
         X_train.append(seq)
         y_train.append(ans_seq)
@@ -85,11 +88,17 @@ for line in f:
 print "train sequences:", len(X_train)
 print "test sequences:", len(X_test_orig)
 
+maxlen = max_detected_length
+print "MAX LENGTH:", maxlen
+
 X_train = sequence.pad_sequences(X_train, maxlen=maxlen)
 X_test = sequence.pad_sequences(X_test_orig, maxlen=maxlen)
 
-y_train = sequence.pad_sequences(y_train, padding="post", maxlen=PAD_LENGTH)
-y_test = sequence.pad_sequences(y_test_orig, padding="post", maxlen=PAD_LENGTH)
+y_train = sequence.pad_sequences(y_train, padding="post", maxlen=maxlen)
+y_test = sequence.pad_sequences(y_test_orig, padding="post", maxlen=maxlen)
+
+# y_train = to_categorical(y_train)
+# y_test = to_categorical(y_test)
 
 print X_train.shape, X_test.shape, y_train.shape, y_test.shape
 print X_train[0], y_train[0]
@@ -102,14 +111,16 @@ print X_train[0], y_train[0]
 
 print('Build model...')
 number_input = maxlen
-number_hidden = 32
+number_hidden = 256
 number_output = len(calc_buttons)
 model = Sequential()
 model.add(Embedding(max_features, number_hidden, input_length=maxlen, dropout=0.2))
 # model.add(LSTM(128, dropout_W=0.2, dropout_U=0.2, return_sequences=True))
 model.add(LSTM(number_hidden, dropout_W=0.2, dropout_U=0.2, return_sequences=True))
 # model.add(TimeDistributedDense(number_output, input_dim = number_hidden))
-# model.add(TimeDistributed(Dense(number_output)))
+model.add(TimeDistributed(Dense(number_output)))
+
+# model.add(Masking(mask_value=1., input_shape=(PAD_LENGTH, number_output)))
 # model.add(Dense(len(y_train[0])))
 # model.add(TimeDistributed(Activation('softmax')))
 
